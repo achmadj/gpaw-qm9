@@ -1,0 +1,11 @@
+{
+  "backend": "dense",
+  "device": "cuda",
+  "train_samples": 17883,
+  "val_samples": 2068,
+  "parameters": 1422785,
+  "data": "/home/achmadjae/gpaw-qm9/dataset/gpaw_qm9_merged.h5",
+  "input_dataset": "v_ext",
+  "target_dataset": "n_r",
+  "experiment_name": "dense_physics_v2"
+}

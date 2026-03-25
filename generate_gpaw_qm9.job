@@ -1,0 +1,39 @@
+#!/bin/bash
+#SBATCH --job-name=gpaw_generate
+#SBATCH --output=/home/achmadjae/gpaw-qm9/logs/gpaw_gen_%j.out
+#SBATCH --error=/home/achmadjae/gpaw-qm9/logs/gpaw_gen_%j.err
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --nodelist=node19
+#SBATCH --cpus-per-task=24
+##SBATCH --mem=60G
+##SBATCH --time=48:00:00
+#SBATCH --partition=dual_4090
+
+set -euo pipefail
+source /home/achmadjae/miniconda3/etc/profile.d/conda.sh
+conda activate gpaw
+
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+
+PROJECT_DIR="/home/achmadjae/gpaw-qm9"
+INPUT_DB="$PROJECT_DIR/dataset/raw/qm9_smallest_20k.h5"
+NUM_SHARDS=6
+
+mkdir -p "$PROJECT_DIR/logs" "$PROJECT_DIR/dataset/shards"
+cd "$PROJECT_DIR"
+
+# Jalankan 6 shard secara paralel, tiap shard dapat 4 core
+for i in $(seq 0 $((NUM_SHARDS - 1))); do
+  SHARD_OUT="$PROJECT_DIR/dataset/shards/gpaw_shard_${i}.h5"
+  echo "Starting shard=$i"
+  OMP_NUM_THREADS=4 python src/run_gpaw_from_h5.py \
+    --db_path "$INPUT_DB" --out_path "$SHARD_OUT" \
+    --n_mols 0 --selection all \
+    --shard_index "$i" --num_shards "$NUM_SHARDS" \
+    --padding_bohr 4.0 --h 0.2 --resume \
+    > "$PROJECT_DIR/logs/shard_${i}.log" 2>&1 &
+done
+
+wait
+echo "All $NUM_SHARDS shards completed."

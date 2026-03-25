@@ -1,0 +1,9 @@
+{
+  "total_samples": 19951,
+  "avg_ratio": 733.0036571107595,
+  "median_ratio": 730.2422706538266,
+  "max_ratio": 1030.6673901247966,
+  "min_ratio": 454.2893990198607,
+  "percent_extreme_ratio_gt_100": 100.0,
+  "avg_true_max": 183.14625206756554
+}

@@ -1,0 +1,93 @@
+Analyzing 7 random files. Assessing fp16 conversion safety...
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_11.h5 | Mol: dsgdb9nsd_131216 (C6H6N2O)
+  [v_ext]
+    Max absolute value: 2.7361e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  7.3172e-08 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 1.1301e-01
+  [n_r]
+    Max absolute value: 1.7707e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.0115e-13 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 5.2210e-02
+    Integrated electrons (fp64): 64.000000
+    Integrated electrons (fp16): 64.000510  (diff: 0.000510)
+    NOTE: 4319 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_4.h5 | Mol: dsgdb9nsd_004226 (C3H3F3O)
+  [v_ext]
+    Max absolute value: 2.6244e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  6.9572e-08 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 6.4740e-02
+  [n_r]
+    Max absolute value: 2.0342e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  4.0460e-12 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 5.6378e-02
+    Integrated electrons (fp64): 56.000000
+    Integrated electrons (fp16): 55.999441  (diff: 0.000559)
+    NOTE: 1069 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_9.h5 | Mol: dsgdb9nsd_129223 (C3H4N6)
+  [v_ext]
+    Max absolute value: 2.7875e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.5633e-07 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 9.3403e-02
+  [n_r]
+    Max absolute value: 1.6859e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.2030e-13 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 6.0578e-02
+    Integrated electrons (fp64): 64.000000
+    Integrated electrons (fp16): 64.000295  (diff: 0.000295)
+    NOTE: 2697 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_22.h5 | Mol: dsgdb9nsd_131349 (C3H3N3O3)
+  [v_ext]
+    Max absolute value: 2.5442e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.4226e-06 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 6.1995e-02
+  [n_r]
+    Max absolute value: 1.8430e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  3.0050e-11 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 4.6812e-02
+    Integrated electrons (fp64): 66.000000
+    Integrated electrons (fp16): 65.999881  (diff: 0.000119)
+    NOTE: 585 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_13.h5 | Mol: dsgdb9nsd_055621 (C4H4N4O)
+  [v_ext]
+    Max absolute value: 2.5711e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.2680e-06 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 1.1412e-01
+  [n_r]
+    Max absolute value: 1.6597e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  1.0888e-13 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 3.9990e-02
+    Integrated electrons (fp64): 64.000000
+    Integrated electrons (fp16): 63.999815  (diff: 0.000185)
+    NOTE: 5251 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_20.h5 | Mol: dsgdb9nsd_003709 (C4H6N2O)
+  [v_ext]
+    Max absolute value: 2.6526e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  1.2269e-06 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 6.1619e-02
+  [n_r]
+    Max absolute value: 1.6930e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  4.3145e-12 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 5.2164e-02
+    Integrated electrons (fp64): 52.000000
+    Integrated electrons (fp16): 51.998897  (diff: 0.001103)
+    NOTE: 1065 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------
+File: gpaw_qm9_shard_3.h5 | Mol: dsgdb9nsd_084196 (C6H5NO2)
+  [v_ext]
+    Max absolute value: 2.7529e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  2.6295e-07 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 6.1363e-02
+  [n_r]
+    Max absolute value: 1.7857e+02 (fp16 max: 6.55e4)
+    Min nonzero value:  9.8181e-14 (fp16 tiny: 6.10e-5, subnormal: 5.96e-8)
+    Max precision error due to fp16: 5.3956e-02
+    Integrated electrons (fp64): 64.000000
+    Integrated electrons (fp16): 63.999771  (diff: 0.000229)
+    NOTE: 5063 values underflowed to 0 in fp16.
+--------------------------------------------------------------------------------

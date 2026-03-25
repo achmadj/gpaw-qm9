@@ -1,0 +1,39 @@
+{
+  "checkpoint": "/clusterfs/students/achmadjae/gpaw-qm9/models/experiments/dense_baseline_v1/checkpoints/best.pt",
+  "best_val": 0.0014952865644143178,
+  "data": "dataset/gpaw_qm9_20k.h5",
+  "max_samples": 1000,
+  "val_split": 0.1,
+  "split_seed": 42,
+  "sample_seed": 42,
+  "selected_validation_position": 12,
+  "selected_dataset_index": 61,
+  "key": "dsgdb9nsd_000064",
+  "formula": "C4H7N",
+  "shape": [
+    36,
+    40,
+    36
+  ],
+  "plot_info": {
+    "density_threshold": 0.05,
+    "delta_threshold": 0.026779049932956725,
+    "true_selected_points": 7020,
+    "pred_selected_points": 6955,
+    "delta_selected_points": 519
+  },
+  "mae": 0.0017910930328071117,
+  "rmse": 0.027334850281476974,
+  "r2": 0.9996355348582626,
+  "pred_sum_raw": 4410.54248046875,
+  "true_sum_raw": 4420.1298828125,
+  "delta_sum_raw": -9.58740234375,
+  "max_abs_error": 2.2662200927734375,
+  "dv_angstrom3": 0.00829528742684401,
+  "pred_integrated_electrons": 36.58671758379381,
+  "true_integrated_electrons": 36.66624784191202,
+  "delta_integrated_electrons": -0.07953025811820424,
+  "expected_neutral_electrons": 38,
+  "delta_pred_vs_expected_electrons": -1.4132824162061866,
+  "delta_true_vs_expected_electrons": -1.3337521580879823
+}
