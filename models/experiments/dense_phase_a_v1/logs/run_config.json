@@ -1,0 +1,21 @@
+{
+  "data": "/home/achmadjae/gpaw-qm9/dataset/qm9_1000_phase_a.h5",
+  "experiment_name": "dense_phase_a_v1",
+  "epochs": 100,
+  "batch_size": 8,
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "base_channels": 32,
+  "dropout": 0.0,
+  "val_split": 0.1,
+  "seed": 42,
+  "amp": true,
+  "gpu": 0,
+  "last_activation": "softplus",
+  "num_workers": 2,
+  "gradient_checkpointing": false,
+  "resume": null,
+  "n_params": 5687169,
+  "train_samples": 900,
+  "val_samples": 100
+}

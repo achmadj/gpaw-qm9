@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\graphicspath{{/home/achmadjae/gpaw-qm9/}{/home/achmadjae/3d-unet-qm9/figures/}}
 \usepackage{multirow}
 \usepackage{siunitx}
 \usepackage{subcaption}
@@ -128,35 +129,71 @@
 \end{frame}
 
 % -----------------------------------------------------------------------------
-% SLIDE 6: EQUIVARIANCE TEST
+% SLIDE 6: EQUIVARIANCE TEST (UPDATED with nearest-neighbor rotation results)
 % -----------------------------------------------------------------------------
-\begin{frame}{Equivariance Validation}
+\begin{frame}{Equivariance Validation (Corrected)}
   \begin{block}{Methodology}
-    We verified model equivariance by comparing $f(R\cdot x)$ vs $R \cdot f(x)$, where $R$ is a rotation operator, $x$ is input ($v_{ion}$), and $f$ is the network.
+    We verified model equivariance under \textbf{nearest-neighbor} (order=0, no interpolation) rotations: \\
+    \texttt{scipy.ndimage.rotate(..., order=0)} — pure voxel permutation, no smoothing.
   \end{block}
 
   \begin{table}[h]
     \centering
     \scriptsize
-    \caption{Equivariance and accuracy metrics averaged over 10 validation molecules.}
-    \begin{tabular}{llccc}
+    \caption{R$^2$ under 90$^\circ$ and 180$^\circ$ rotation (order=0, 10 molecules).}
+    \begin{tabular}{lcc}
     \toprule
-    Rotation Type & Metric & MAE & $R^2$ \\
+    Metric & 90$^\circ$ Rotation & 180$^\circ$ Rotation \\
     \midrule
-    \multirow{3}{*}{\textbf{90$^\circ$ (Exact)}} & \textbf{Equivariance Error} ($f(R x)$ vs $R f(x)$) & \textbf{0.0013} & \textbf{0.9996} \\
-                                              & Rotated Accuracy ($f(R x)$ vs $R y$) & 0.0067 & 0.9931 \\
-                                              & Original Accuracy ($f(x)$ vs $y$) & 0.0065 & 0.9932 \\
-    \midrule
-    \multirow{3}{*}{\textbf{Arbitrary (Interpolated)}} & \textbf{Equivariance Error} & \textbf{0.0115} & \textbf{0.9784} \\
-                                                    & Rotated Accuracy & 0.0139 & 0.9694 \\
-                                                    & Original Accuracy & 0.0065 & 0.9932 \\
+    Best R$^2$ & 0.9941 (gdb\_130574, C$_3$N$_4$O$_2$) & 0.9941 (gdb\_130574) \\
+    Worst R$^2$ & \textbf{0.7745} (gdb\_3820, C$_3$HN$_3$O) & 0.9866 (gdb\_130) \\
+    Mean R$^2$ & 0.9344 & \textbf{0.9893} \\
+    Mean MAE & 0.0165 & 0.0073 \\
     \bottomrule
     \end{tabular}
   \end{table}
 
   \begin{itemize}
-      \item \textbf{Exact 90$^\circ$ Rotations:} The model exhibits near-perfect equivariance ($R^2 \approx 1.000$).
-      \item \textbf{Arbitrary Rotations:} Slight performance degradation is primarily due to \texttt{scipy.ndimage} trilinear grid interpolation artifacts, \textbf{not} a failure of the model's geometric awareness.
+      \item \textbf{180$^\circ$ Rotations (robust):} Pure sign-inversion. R$^2 > 0.986$ for all molecules. Model handles reflection symmetries perfectly.
+      \item \textbf{90$^\circ$ Rotations (grid-dependent):} Axis swapping causes significant degradation on \textbf{anisotropic grids} (e.g., $32\times48\times20 \rightarrow 20\times48\times32$). The scalar-only \texttt{escnn} representation ($\ell=0$, \texttt{trivial\_repr}) does \textbf{not} guarantee equivariance on arbitrary non-cubic 3D grids.
+  \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 6b: 3x4 VISUALIZATION — ORIGINAL vs 90° vs 180°
+% -----------------------------------------------------------------------------
+\begin{frame}{Rotation Visualization: C$_4$H$_4$O (gdb\_110, $36\times44\times40$)}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.98\textwidth]{equivariant_rotated_3x4_scatter.png}
+    \caption{3$\times$4 grid: V$_{ion}$ (input) / $n_{pred}$ / $n_{true}$ / $\Delta n$ for original (top), 90$^\circ$ y-axis (middle), and 180$^\circ$ y-axis (bottom). All three scenarios achieve R$^2 > 0.990$ on this \textbf{near-isotropic} grid.}
+  \end{figure}
+  
+  \begin{itemize}
+      \tiny
+      \item \textbf{Original:} R$^2$=0.9913, MAE=0.0042 — baseline performance on unrotated input.
+      \item \textbf{90$^\circ$:} R$^2$=0.9915, MAE=0.0039 — \textbf{no degradation} because grid is well-balanced ($36\times44\times40$).
+      \item \textbf{180$^\circ$:} R$^2$=0.9903, MAE=0.0045 — robust as expected (pure inversion).
+      \item \textbf{Key insight:} Equivariance holds for 90$^\circ$ on \textit{near-isotropic} grids, but fails on anisotropic grids (R$^2$ drops to 0.775 for C$_3$HN$_3$O on $32\times48\times20$). The scalar-only \texttt{trivial\_repr} architecture overfits to training axis orientations.
+  \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 6c: EQUIVARIANT vs DENSE — VALIDATION-ONLY
+% -----------------------------------------------------------------------------
+\begin{frame}{Equivariant vs Dense: Rotation Robustness (Validation-Only)}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{equiv_vs_dense_rotation_VAL_ONLY.png}
+    \caption{Comparison on \textbf{unseen validation molecules only} (never in training). Both models trained identically. 90$^\circ$ degrades \textit{both} models on anisotropic grids.}
+  \end{figure}
+
+  \begin{itemize}
+      \tiny
+      \item \textbf{0$^\circ$ / 180$^\circ$:} Dense slightly better (avg R$^2$ 0.998/0.997 vs 0.994/0.994) — 3$\times$3$\times$3 isotropic kernels handle axis-inversion naturally.
+      \item \textbf{90$^\circ$ on anisotropic grids (e.g., C$_5$HNO$_2$, $56\times36\times20$, aspect 2.8$\times$):} Equi R$^2$=0.854, Dense R$^2$=0.892 — \textbf{both degrade}, dense slightly less. Axis-swapping changes effective receptive field shape.
+      \item \textbf{90$^\circ$ on cubic grid (C$_3$H$_6$, $32\times32\times32$):} Both near-perfect (R$^2$=0.994) — 3$\times$3$\times$3 kernel is genuinely rotation-robust when grid is isotropic.
+      \item \textbf{Earlier results were contaminated by data leakage} — test molecules were in training set ($\rightarrow$ inflated dense R$^2$). Corrected here with validation-only molecules.
   \end{itemize}
 \end{frame}
 
