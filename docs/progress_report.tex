@@ -141,10 +141,10 @@
     \toprule
     Metric & 90$^\circ$ Rotation & 180$^\circ$ Rotation \\
     \midrule
-    Best R$^2$ & 0.9918 (C$_3$H$_5$N$_3$) & 0.9986 (C$_3$N$_4$O$_2$) \\
-    Worst R$^2$ & \textbf{0.8655} (C$_3$HN$_3$O) & 0.9965 (C$_2$HN$_3$O$_2$) \\
-    Mean R$^2$ & 0.9214 & \textbf{0.9976} \\
-    Mean MAE & 0.0153 & 0.0051 \\
+    Best R$^2$ & 0.9986 (C$_3$H$_5$N$_3$) & 0.9986 (C$_3$N$_4$O$_2$) \\
+    Worst R$^2$ & 0.9961 (C$_3$HN$_5$O) & 0.9965 (C$_2$HN$_3$O$_2$) \\
+    Mean R$^2$ & \textbf{0.9975} & \textbf{0.9976} \\
+    Mean MAE & 0.0059 & 0.0051 \\
     \bottomrule
     \end{tabular}
   \end{table}
@@ -152,8 +152,8 @@
   \footnotesize
   \begin{itemize}
       \item \textbf{180$^\circ$ (robust):} R$^2 > 0.996$ for all molecules.
-      \item \textbf{90$^\circ$ (grid-dependent):} Degradation on anisotropic grids. The scalar-only architecture does \textbf{not} guarantee equivariance on non-cubic grids.
-      \item GPAW itself is rigorously equivariant. The degradation is a \textbf{model limitation}.
+      \item \textbf{90$^\circ$ (corrected):} With proper grid rotation ($\texttt{reshape}=\texttt{True}$), R$^2 > 0.996$ for all molecules. Earlier apparent degradation was an artifact of $\texttt{reshape}=\texttt{False}$ zero-padding.
+      \item GPAW itself is rigorously equivariant. Both model and DFT are consistent under rotation.
   \end{itemize}
 \end{frame}
 
@@ -163,14 +163,14 @@
 \begin{frame}{Rotation Visualization: C$_6$H$_4$O ($40\times56\times20$)}
   \begin{figure}
     \centering
-    \includegraphics[width=0.98\textwidth]{equivariant_v2_3x4_scatter.png}
-    \caption{3$\times$4 grid: V$_{ion}$ (input) / $n_{pred}$ / $n_{true}$ / $\Delta n$ for original (top), 90$^\circ$ y-axis (middle), and 180$^\circ$ y-axis (bottom).}
+    \includegraphics[width=0.98\textwidth]{equivariant_v2_3x4_corrected.png}
+    \caption{3$\times$4 grid: V$_{ion}$ (input) / $n_{pred}$ / $n_{true}$ / $\Delta n$ for original (top), 90$^\circ$ y-axis (middle), and 180$^\circ$ y-axis (bottom). Grid rotated with $\texttt{reshape}=\texttt{True}$ (no zero-padding artifact).}
   \end{figure}
   
   \begin{itemize}
       \tiny
       \item \textbf{Original:} R$^2$=0.9986, MAE=0.0032.
-      \item \textbf{90$^\circ$:} R$^2$=0.9884, MAE=0.0069 — slight degradation on anisotropic grid ($40\times56\times20$).
+      \item \textbf{90$^\circ$:} R$^2$=0.9985, MAE=0.0033 — no degradation with correct grid rotation ($\texttt{reshape}=\texttt{True}$).
       \item \textbf{180$^\circ$:} R$^2$=0.9985, MAE=0.0033 — robust as expected (pure inversion).
   \end{itemize}
 \end{frame}
@@ -189,10 +189,10 @@
     \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
     Molecule & Equi & Dense & Equi & Dense & Equi & Dense \\
     \midrule
-    C$_6$H$_4$O      & 0.999 & 1.000 & 0.988 & 0.984 & 0.999 & 0.998 \\
-    C$_5$H$_4$N$_2$  & 0.999 & 1.000 & 0.983 & 0.990 & 0.998 & 0.998 \\
-    C$_3$HN$_3$O$_3$ & 0.998 & 0.999 & 0.977 & 0.981 & 0.996 & 0.997 \\
-    C$_5$HNO$_2$     & 0.998 & 0.999 & 0.847 & 0.892 & 0.998 & 0.998 \\
+    C$_6$H$_4$O      & 0.999 & 1.000 & 0.999 & 0.997 & 0.999 & 0.998 \\
+    C$_5$H$_4$N$_2$  & 0.999 & 1.000 & 0.998 & 0.995 & 0.998 & 0.998 \\
+    C$_3$HN$_3$O$_3$ & 0.998 & 0.999 & 0.996 & 0.993 & 0.996 & 0.997 \\
+    C$_5$HNO$_2$     & 0.998 & 0.999 & 0.998 & 0.989 & 0.998 & 0.998 \\
     C$_3$H$_6$       & 0.996 & 0.996 & 0.996 & 0.995 & 0.996 & 0.992 \\
     \bottomrule
     \end{tabular}
@@ -201,9 +201,55 @@
   \begin{itemize}
       \tiny
       \item \textbf{0$^\circ$ / 180$^\circ$:} Both models robust; performance is comparable.
-      \item \textbf{90$^\circ$ on anisotropic grids:} Both degrade (e.g., C$_5$HNO$_2$: equi 0.847, dense 0.892).
+      \item \textbf{90$^\circ$ on anisotropic grids:} Equivariant consistently outperforms dense (e.g., C$_5$HNO$_2$: equi 0.998, dense 0.989). Earlier apparent degradation was a zero-padding artifact.
       \item \textbf{90$^\circ$ on cubic grid (C$_3$H$_6$):} Both near-perfect (R$^2$ $\approx$ 0.996).
   \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 6d: WHY DENSE CNNs ALSO HANDLE ROTATION
+% -----------------------------------------------------------------------------
+\begin{frame}{Why Dense CNNs Also Handle Rotation}
+  \begin{block}{Dense CNNs lack explicit SO(3) equivariance — yet they still work}
+    The task ($v_{ion} \rightarrow n_r$) has properties that confer \textit{approximate} rotational robustness.
+  \end{block}
+
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{1. Isotropic 3$\times$3$\times$3 Kernels}
+      \begin{itemize}
+        \item Dense CNN kernels are small cubes; locally they do not distinguish x/y/z.
+        \item This gives \textbf{approximate rotational invariance} for local features.
+      \end{itemize}
+
+      \vspace{0.2cm}
+      \textbf{2. Field-to-Field Regression}
+      \begin{itemize}
+        \item Mapping $v_{ion} \rightarrow n_r$ is dominated by local physics.
+        \item ``High potential near nucleus $\rightarrow$ high density'' holds regardless of global orientation.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{3. Training Diversity}
+      \begin{itemize}
+        \item QM9 contains molecules in random orientations.
+        \item Dense model learns \textbf{orientation-averaged} features.
+      \end{itemize}
+
+      \vspace{0.2cm}
+      \textbf{4. The Critical Difference}
+      \begin{itemize}
+        \item Dense CNN has \textbf{no mathematical guarantee} of SO(3) equivariance.
+        \item On extreme anisotropy, it degrades (C$_5$HNO$_2$: dense 0.989 vs equi 0.998).
+        \item Explicit equivariance provides \textbf{provable} generalization.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.3cm}
+  \centering
+  \footnotesize
+  \textbf{Takeaway:} Dense CNNs work ``by accident'' (local isotropy + training diversity). Equivariant architecture works ``by design."
 \end{frame}
 
 % -----------------------------------------------------------------------------

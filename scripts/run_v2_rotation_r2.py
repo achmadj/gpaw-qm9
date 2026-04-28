@@ -80,9 +80,9 @@ def main():
 
             print(f"[{i+1}/{N_MOLS}] {key} ({formula}) | axis={axis_names[axis]}, angle={angle}°", flush=True)
 
-            v_ion_rot = rotate(v_ion_raw, angle, axes=rot_axes, reshape=False, order=0,
+            v_ion_rot = rotate(v_ion_raw, angle, axes=rot_axes, reshape=True, order=0,
                                prefilter=False, mode="constant", cval=0.0)
-            n_r_rot = rotate(n_r_raw, angle, axes=rot_axes, reshape=False, order=0,
+            n_r_rot = rotate(n_r_raw, angle, axes=rot_axes, reshape=True, order=0,
                              prefilter=False, mode="constant", cval=0.0)
 
             mu = float(v_ion_rot.mean())
