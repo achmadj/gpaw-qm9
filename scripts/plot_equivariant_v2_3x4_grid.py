@@ -21,9 +21,9 @@ from models.equivariant.model import EquivariantUNet3D
 
 
 H5_PATH = "/home/achmadjae/gpaw-qm9/dataset/qm9_1000_phase_a.h5"
-CKPT_PATH = "/home/achmadjae/models/experiments/equivariant_v2/checkpoints/best.pt"
+CKPT_PATH = "/home/achmadjae/gpaw-qm9/models/experiments/equivariant_v2/checkpoints/best.pt"
 OUT_DIR = Path("/home/achmadjae/3d-unet-qm9/figures")
-KEY = "gdb_110"
+KEY = "gdb_1006"
 ROT_AXIS = 1
 ROT_AXIS_NAME = "y (xz-plane)"
 PAD_MULTIPLE = 8
@@ -173,8 +173,8 @@ def main():
                              fontweight="bold", loc="left")
 
     fig.suptitle(
-        f"Equivariant 3D U-Net (equivariant_v2, 4.87M): Density Prediction under Grid Rotations\n"
-        f"Molecule: {formula} ({KEY}), grid {v_ion_raw.shape[0]}×{v_ion_raw.shape[1]}×{v_ion_raw.shape[2]}",
+        f"Equivariant 3D U-Net: Density Prediction under Grid Rotations\n"
+        f"Molecule: {formula}, grid {v_ion_raw.shape[0]}×{v_ion_raw.shape[1]}×{v_ion_raw.shape[2]}",
         fontsize=11, fontweight="bold", y=1.01,
     )
     fig.tight_layout()

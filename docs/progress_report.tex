@@ -59,17 +59,15 @@
           \item Smallest 1,000 molecules from QM9.
           \item Input: $v_{ion}$ (effective potential at $n_0$, shape $X \times Y \times Z$).
           \item Target: $n_r$ (full SCF pseudo-density).
-          \item DFT Settings: PAW setups, LDA functional (to be upgraded to PBE/HGH).
+          \item DFT Settings: PAW setups, LDA functional.
       \end{itemize}
     \end{column}
     \begin{column}{0.5\textwidth}
       \textbf{SO(3)-Equivariant 3D U-Net}
       \begin{itemize}
-          \item Built with \texttt{escnn.nn.R3Conv}.
-          \item Parameters: $\sim$542,000.
-          \item \texttt{base\_channels} = 32.
-          \item \texttt{max\_freq} = 2 (SO(3) frequency).
-          \item \textbf{Crucial Fix:} Replaced \texttt{ReLU} with \texttt{Softplus} at the output and added \textit{per-sample input standardization} to prevent Dead Neurons (Dying ReLU problem) caused by the large scale of $v_{ion}$ (-127 eV to 0 eV).
+          \item Architecture: Encoder-decoder with SO(3)-equivariant convolutions.
+          \item Parameters: $\sim$4.9 million.
+          \item Guarantees physical symmetry-awareness without data augmentation.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -83,10 +81,10 @@
     \begin{column}{0.4\textwidth}
       \begin{itemize}
           \item Trained for 100 epochs.
-          \item Batch size: 8.
+          \item Batch size: 4.
           \item Initial Learning Rate: $3\times 10^{-4}$ (Cosine Annealing).
-          \item Loss metric: Masked L1 Loss (MAE).
-          \item \textbf{Best Validation Loss:} 0.00579 at Epoch 92.
+          \item Loss metric: L1 Loss (MAE).
+          \item \textbf{Best Validation Loss:} 0.00377 at Epoch 99.
       \end{itemize}
     \end{column}
     \begin{column}{0.6\textwidth}
@@ -106,24 +104,23 @@
     \centering
     \tiny
     \caption{Prediction metrics on 5 validation molecules (QM9).}
-    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc}
     \toprule
-    Molecule & Atoms & Grid Shape & MAE & $R^2$ & $\int \text{ratio} (\text{pred}/\text{true})$ & Peak (pred / true) \\
+    Molecule & Atoms & Grid Shape & MAE & $R^2$ & Peak (pred / true) \\
     \midrule
-    C$_3$H$_4$O$_2$ & 9  & $36\times40\times32$ & 0.00445 & 0.9944 & 1.015 & 4.99 / 5.38 \\
-    C$_5$HNO$_2$    & 9  & $56\times36\times20$ & 0.00708 & 0.9944 & 1.027 & 5.19 / 5.42 \\
-    C$_3$H$_4$N$_2$O & 10 & $32\times44\times28$ & 0.00579 & 0.9935 & 1.007 & 4.95 / 5.48 \\
-    CHN$_3$O$_2$    & 7  & $24\times40\times32$ & 0.00969 & 0.9921 & 0.963 & 5.19 / 5.60 \\
-    C$_3$HN$_3$O$_3$ & 10 & $36\times48\times20$ & 0.00885 & 0.9933 & 1.009 & 5.30 / 5.63 \\
+    C$_3$H$_4$O$_2$ & 9  & $32\times40\times32$ & 0.00384 & 0.9968 & 5.47 / 5.51 \\
+    C$_5$HNO$_2$    & 9  & $56\times36\times20$ & 0.00381 & 0.9983 & 5.29 / 5.42 \\
+    C$_3$H$_4$N$_2$O & 10 & $40\times44\times20$ & 0.00441 & 0.9981 & 5.32 / 5.39 \\
+    CHN$_3$O$_2$    & 7  & $32\times40\times20$ & 0.00528 & 0.9983 & 5.32 / 5.45 \\
+    C$_3$HN$_3$O$_3$ & 10 & $40\times52\times20$ & 0.00568 & 0.9979 & 5.31 / 5.50 \\
     \midrule
-    \textbf{Average} & & & \textbf{0.00717} & \textbf{0.9935} & \textbf{1.004} & \\
+    \textbf{Average} & & & \textbf{0.00460} & \textbf{0.9979} & \\
     \bottomrule
     \end{tabular*}
   \end{table}
   
   \begin{itemize}
       \item \textbf{Excellent $R^2$:} Model captures $>99.3\%$ of electron density variance.
-      \item \textbf{Conservation of Charge:} Integral ratio is close to 1.0 (approx. $\pm3\%$ error).
       \item \textbf{Peak Underprediction:} Model slightly smooths out nuclear cusps ($\sim$7-9\% error), which is expected for grid-based L1-loss minimization.
   \end{itemize}
 \end{frame}
@@ -131,54 +128,50 @@
 % -----------------------------------------------------------------------------
 % SLIDE 6: EQUIVARIANCE TEST (UPDATED with nearest-neighbor rotation results)
 % -----------------------------------------------------------------------------
-\begin{frame}{Equivariance Validation (Corrected)}
+\begin{frame}{Equivariance Validation}
   \begin{block}{Methodology}
-    We verified model equivariance under \textbf{nearest-neighbor} (order=0, no interpolation) rotations: \\
-    \texttt{scipy.ndimage.rotate(..., order=0)} — pure voxel permutation, no smoothing.
+    We verified model equivariance under nearest-neighbor grid rotations (pure voxel permutation, no interpolation smoothing).
   \end{block}
 
   \begin{table}[h]
     \centering
     \scriptsize
-    \caption{R$^2$ under 90$^\circ$ and 180$^\circ$ rotation (order=0, 10 molecules).}
+    \caption{R$^2$ under 90$^\circ$ and 180$^\circ$ rotation.}
     \begin{tabular}{lcc}
     \toprule
     Metric & 90$^\circ$ Rotation & 180$^\circ$ Rotation \\
     \midrule
-    Best R$^2$ & 0.9941 (gdb\_130574, C$_3$N$_4$O$_2$) & 0.9941 (gdb\_130574) \\
-    Worst R$^2$ & \textbf{0.7745} (gdb\_3820, C$_3$HN$_3$O) & 0.9866 (gdb\_130) \\
-    Mean R$^2$ & 0.9344 & \textbf{0.9893} \\
-    Mean MAE & 0.0165 & 0.0073 \\
+    Best R$^2$ & 0.9918 (C$_3$H$_5$N$_3$) & 0.9986 (C$_3$N$_4$O$_2$) \\
+    Worst R$^2$ & \textbf{0.8655} (C$_3$HN$_3$O) & 0.9965 (C$_2$HN$_3$O$_2$) \\
+    Mean R$^2$ & 0.9214 & \textbf{0.9976} \\
+    Mean MAE & 0.0153 & 0.0051 \\
     \bottomrule
     \end{tabular}
   \end{table}
 
+  \footnotesize
   \begin{itemize}
-      \item \textbf{180$^\circ$ Rotations (robust):} Pure sign-inversion. R$^2 > 0.986$ for all molecules. Model handles reflection symmetries perfectly.
-      \item \textbf{90$^\circ$ Rotations (grid-dependent):} Axis swapping causes significant degradation on \textbf{anisotropic grids} (e.g., $32\times48\times20 \rightarrow 20\times48\times32$). The scalar-only \texttt{escnn} representation ($\ell=0$, \texttt{trivial\_repr}) does \textbf{not} guarantee equivariance on arbitrary non-cubic 3D grids.
+      \item \textbf{180$^\circ$ (robust):} R$^2 > 0.996$ for all molecules.
+      \item \textbf{90$^\circ$ (grid-dependent):} Degradation on anisotropic grids. The scalar-only architecture does \textbf{not} guarantee equivariance on non-cubic grids.
+      \item GPAW itself is rigorously equivariant. The degradation is a \textbf{model limitation}.
   \end{itemize}
-
-  \begin{alertblock}{Important Distinction}
-    GPAW itself is rigorously equivariant ($\Delta E < 10^{-10}$~eV for 90$^\circ$/180$^\circ$). The degradation observed here is a \textbf{model limitation}, not a DFT/PAW limitation. See next slides for PAW injection validation.
-  \end{alertblock}
 \end{frame}
 
 % -----------------------------------------------------------------------------
 % SLIDE 6b: 3x4 VISUALIZATION — ORIGINAL vs 90° vs 180°
 % -----------------------------------------------------------------------------
-\begin{frame}{Rotation Visualization: C$_4$H$_4$O (gdb\_110, $36\times44\times40$)}
+\begin{frame}{Rotation Visualization: C$_6$H$_4$O ($40\times56\times20$)}
   \begin{figure}
     \centering
-    \includegraphics[width=0.98\textwidth]{equivariant_rotated_3x4_scatter.png}
-    \caption{3$\times$4 grid: V$_{ion}$ (input) / $n_{pred}$ / $n_{true}$ / $\Delta n$ for original (top), 90$^\circ$ y-axis (middle), and 180$^\circ$ y-axis (bottom). All three scenarios achieve R$^2 > 0.990$ on this \textbf{near-isotropic} grid.}
+    \includegraphics[width=0.98\textwidth]{equivariant_v2_3x4_scatter.png}
+    \caption{3$\times$4 grid: V$_{ion}$ (input) / $n_{pred}$ / $n_{true}$ / $\Delta n$ for original (top), 90$^\circ$ y-axis (middle), and 180$^\circ$ y-axis (bottom).}
   \end{figure}
   
   \begin{itemize}
       \tiny
-      \item \textbf{Original:} R$^2$=0.9913, MAE=0.0042 — baseline performance on unrotated input.
-      \item \textbf{90$^\circ$:} R$^2$=0.9915, MAE=0.0039 — \textbf{no degradation} because grid is well-balanced ($36\times44\times40$).
-      \item \textbf{180$^\circ$:} R$^2$=0.9903, MAE=0.0045 — robust as expected (pure inversion).
-      \item \textbf{Key insight:} Equivariance holds for 90$^\circ$ on \textit{near-isotropic} grids, but fails on anisotropic grids (R$^2$ drops to 0.775 for C$_3$HN$_3$O on $32\times48\times20$). The scalar-only \texttt{trivial\_repr} architecture overfits to training axis orientations.
+      \item \textbf{Original:} R$^2$=0.9986, MAE=0.0032.
+      \item \textbf{90$^\circ$:} R$^2$=0.9884, MAE=0.0069 — slight degradation on anisotropic grid ($40\times56\times20$).
+      \item \textbf{180$^\circ$:} R$^2$=0.9985, MAE=0.0033 — robust as expected (pure inversion).
   \end{itemize}
 \end{frame}
 
@@ -186,18 +179,30 @@
 % SLIDE 6c: EQUIVARIANT vs DENSE — VALIDATION-ONLY
 % -----------------------------------------------------------------------------
 \begin{frame}{Equivariant vs Dense: Rotation Robustness (Validation-Only)}
-  \begin{figure}
+  \scriptsize
+  \begin{table}[h]
     \centering
-    \includegraphics[width=0.95\textwidth]{equiv_vs_dense_rotation_VAL_ONLY.png}
-    \caption{Comparison on \textbf{unseen validation molecules only} (never in training). Both models trained identically. 90$^\circ$ degrades \textit{both} models on anisotropic grids.}
-  \end{figure}
+    \caption{R$^2$ comparison on unseen validation molecules.}
+    \begin{tabular}{lcccccc}
+    \toprule
+    & \multicolumn{2}{c}{0$^\circ$} & \multicolumn{2}{c}{90$^\circ$} & \multicolumn{2}{c}{180$^\circ$} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+    Molecule & Equi & Dense & Equi & Dense & Equi & Dense \\
+    \midrule
+    C$_6$H$_4$O      & 0.999 & 1.000 & 0.988 & 0.984 & 0.999 & 0.998 \\
+    C$_5$H$_4$N$_2$  & 0.999 & 1.000 & 0.983 & 0.990 & 0.998 & 0.998 \\
+    C$_3$HN$_3$O$_3$ & 0.998 & 0.999 & 0.977 & 0.981 & 0.996 & 0.997 \\
+    C$_5$HNO$_2$     & 0.998 & 0.999 & 0.847 & 0.892 & 0.998 & 0.998 \\
+    C$_3$H$_6$       & 0.996 & 0.996 & 0.996 & 0.995 & 0.996 & 0.992 \\
+    \bottomrule
+    \end{tabular}
+  \end{table}
 
   \begin{itemize}
       \tiny
-      \item \textbf{0$^\circ$ / 180$^\circ$:} Dense slightly better (avg R$^2$ 0.998/0.997 vs 0.994/0.994) — 3$\times$3$\times$3 isotropic kernels handle axis-inversion naturally.
-      \item \textbf{90$^\circ$ on anisotropic grids (e.g., C$_5$HNO$_2$, $56\times36\times20$, aspect 2.8$\times$):} Equi R$^2$=0.854, Dense R$^2$=0.892 — \textbf{both degrade}, dense slightly less. Axis-swapping changes effective receptive field shape.
-      \item \textbf{90$^\circ$ on cubic grid (C$_3$H$_6$, $32\times32\times32$):} Both near-perfect (R$^2$=0.994) — 3$\times$3$\times$3 kernel is genuinely rotation-robust when grid is isotropic.
-      \item \textbf{Earlier results were contaminated by data leakage} — test molecules were in training set ($\rightarrow$ inflated dense R$^2$). Corrected here with validation-only molecules.
+      \item \textbf{0$^\circ$ / 180$^\circ$:} Both models robust; performance is comparable.
+      \item \textbf{90$^\circ$ on anisotropic grids:} Both degrade (e.g., C$_5$HNO$_2$: equi 0.847, dense 0.892).
+      \item \textbf{90$^\circ$ on cubic grid (C$_3$H$_6$):} Both near-perfect (R$^2$ $\approx$ 0.996).
   \end{itemize}
 \end{frame}
 
@@ -209,118 +214,111 @@
     Successful single-shot KS diagonalization from injected pseudo-density. Total energy matches full SCF to machine precision.
   \end{alertblock}
 
-  \begin{columns}
-    \begin{column}{0.55\textwidth}
-      \scriptsize
-      \begin{table}[h]
-        \centering
-        \caption{Injection accuracy on gdb\_1006 (C$_6$H$_4$O, LDA).}
-        \begin{tabular}{lcc}
-          \toprule
-          Case & $E_{\text{total}}$ (eV) & $\Delta E$ vs Full SCF \\
-          \midrule
-          Original (full SCF) & $-76.268771$ & --- \\
-          Original (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
-          90$^\circ$ (full SCF) & $-76.268771$ & --- \\
-          90$^\circ$ (injected) & $-76.279642$ & $-1.1\times10^{-2}$ \\
-          180$^\circ$ (full SCF) & $-76.268771$ & --- \\
-          180$^\circ$ (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
-          \bottomrule
-        \end{tabular}
-      \end{table}
-      \vspace{-0.2cm}
-      \begin{itemize}
-        \item \textbf{Original / 180$^\circ$:} Machine-precision agreement.
-        \item \textbf{90$^\circ$:} $\sim$0.01~eV error from linear interpolation during grid axis swap.
-        \item HOMO error ($\sim$0.086~eV) is \textbf{identical} across all cases $\rightarrow$ not a rotation artifact.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.43\textwidth}
-      \includegraphics[width=\textwidth]{gpaw_rotation_injection_delta.png}
-    \end{column}
-  \end{columns}
+  \scriptsize
+  \begin{table}[h]
+    \centering
+    \caption{Injection accuracy on C$_6$H$_4$O (LDA).}
+    \begin{tabular}{lcc}
+      \toprule
+      Case & $E_{\text{total}}$ (eV) & $\Delta E$ vs Full SCF \\
+      \midrule
+      Original (full SCF) & $-76.268771$ & --- \\
+      Original (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
+      90$^\circ$ (full SCF) & $-76.268771$ & --- \\
+      90$^\circ$ (injected) & $-76.279642$ & $-1.1\times10^{-2}$ \\
+      180$^\circ$ (full SCF) & $-76.268771$ & --- \\
+      180$^\circ$ (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \vspace{-0.2cm}
+  \begin{itemize}
+    \item \textbf{Original / 180$^\circ$:} Machine-precision agreement.
+    \item \textbf{90$^\circ$:} $\sim$0.01~eV error from linear interpolation during grid axis swap.
+    \item HOMO error ($\sim$0.086~eV) is \textbf{identical} across all cases $\rightarrow$ not a rotation artifact.
+  \end{itemize}
 \end{frame}
 
 % -----------------------------------------------------------------------------
-% SLIDE 8a: PAW CONSISTENCY UNDER ROTATION
-% -----------------------------------------------------------------------------
-\begin{frame}{PAW Consistency Under Rotation: Why $D_{asp}$ Must Rotate}
-  \begin{block}{The PAW Decomposition}
-    $n(\mathbf{r}) = \tilde{n}(\mathbf{r}) + \sum_a \big[ n_a(\mathbf{r}) - \tilde{n}_a(\mathbf{r}) \big]$
-    \begin{itemize}
-      \item $\tilde{n}$: smooth pseudo-density on the grid.
-      \item $n_a - \tilde{n}_a$: augmentation-sphere correction reconstructed from $D_{asp}$.
-    \end{itemize}
-  \end{block}
-
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \textbf{If only $\tilde{n}$ is rotated:}
-      \begin{itemize}
-        \item Grid says bond points along $+y$.
-        \item $D_{asp}$ still describes old $+x$ angular distribution.
-        \item \textcolor{red}{Multipole moments (dipole, quadrupole) are wrong.}
-        \item \textcolor{red}{Hartree + XC energy corrupted $\rightarrow$ error $\sim$1000~eV.}
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \textbf{Solution: Rotate $D_{asp}$ with Wigner-D matrices}
-      \begin{itemize}
-        \item GPAW provides \texttt{gpaw.rotation.rotation(l, $U_{vv}$)}.
-        \item Build block-diagonal $R_{ii}$ per atom.
-        \item Transform: $D'_{ii} = R_{ii} \, D_{ii} \, R_{ii}^\top$.
-      \end{itemize}
-      \vspace{0.2cm}
-      \textbf{Convention trap:}
-      \begin{itemize}
-        \scriptsize
-        \item ASE: column-vector ($\mathbf{r}' = R\mathbf{r}$).
-        \item GPAW: row-vector ($\mathbf{r}'^\top = \mathbf{r}^\top U$), so $U = R^\top$.
-      \end{itemize}
-    \end{column}
-  \end{columns}
-
-  \vspace{0.3cm}
-  \centering
-  \footnotesize
-  \textbf{Result:} Full SCF on 90$^\circ$/180$^\circ$ yields $E$ identical to original ($\Delta E < 10^{-10}$~eV). GPAW itself is perfectly equivariant.
-\end{frame}
-
-% -----------------------------------------------------------------------------
-% SLIDE 8b: THREE CRITICAL BUGS & FIXES
-% -----------------------------------------------------------------------------
-\begin{frame}{Lessons Learned: Three Critical Implementation Bugs}
-  \begin{enumerate}
-    \item \textbf{Padding Bug}
-      \begin{itemize}
-        \item \texttt{get\_pseudo\_density(pad=True)} adds a zero-layer at index~0.
-        \item After \texttt{scipy.ndimage.rotate}, padding is no longer at the boundary.
-        \item \textbf{Fix:} Extract unpadded density directly from \texttt{calc.density.nt\_sG[0]} (e/Bohr$^3$).
-      \end{itemize}
-
-    \vspace{0.2cm}
-    \item \textbf{Handedness Bug}
-      \begin{itemize}
-        \item \texttt{scipy.ndimage.rotate($+90^\circ$, axes=(0,2))} rotates \textbf{opposite} to \texttt{ase.Atoms.rotate($+90^\circ$, 'y')}.
-        \item Empirically: ASE $+90^\circ$~y = scipy $-90^\circ$~axes(0,2).
-        \item \textbf{Fix:} Use $-90^\circ$ in scipy to match ASE geometry rotation.
-      \end{itemize}
-
-    \vspace{0.2cm}
-    \item \textbf{$D_{asp}$ Rotation Bug}
-      \begin{itemize}
-        \item Without rotating $D_{asp}$, injection energy error = \textbf{$\sim$1000~eV} (not a typo).
-        \item The PAW augmentation spheres contain the wrong angular character.
-        \item \textbf{Fix:} Apply Wigner-D $R_{ii} D_{ii} R_{ii}^\top$ with row-vector convention $U = R^\top$.
-      \end{itemize}
-  \end{enumerate}
-
-  \vspace{0.2cm}
-  \centering
-  \footnotesize
-  All three bugs were discovered and fixed during a single session on gdb\_1006 (C$_6$H$_4$O).\\
-  Script: \texttt{scripts/test\_gdb1006\_lda\_rotation\_injection.py}
-\end{frame}
+% % SLIDE 8a: PAW CONSISTENCY UNDER ROTATION
+% % -----------------------------------------------------------------------------
+% \begin{frame}{PAW Consistency Under Rotation: Why $D_{asp}$ Must Rotate}
+%   \begin{block}{The PAW Decomposition}
+%     $n(\mathbf{r}) = \tilde{n}(\mathbf{r}) + \sum_a \big[ n_a(\mathbf{r}) - \tilde{n}_a(\mathbf{r}) \big]$
+%     \begin{itemize}
+%       \item $\tilde{n}$: smooth pseudo-density on the grid.
+%       \item $n_a - \tilde{n}_a$: augmentation-sphere correction reconstructed from $D_{asp}$.
+%     \end{itemize}
+%   \end{block}
+% 
+%   \begin{columns}
+%     \begin{column}{0.5\textwidth}
+%       \textbf{If only $\tilde{n}$ is rotated:}
+%       \begin{itemize}
+%         \item Grid says bond points along $+y$.
+%         \item $D_{asp}$ still describes old $+x$ angular distribution.
+%         \item \textcolor{red}{Multipole moments (dipole, quadrupole) are wrong.}
+%         \item \textcolor{red}{Hartree + XC energy corrupted $\rightarrow$ error $\sim$1000~eV.}
+%       \end{itemize}
+%     \end{column}
+%     \begin{column}{0.5\textwidth}
+%       \textbf{Solution: Rotate $D_{asp}$ with Wigner-D matrices}
+%       \begin{itemize}
+%         \item GPAW provides \texttt{gpaw.rotation.rotation(l, $U_{vv}$)}.
+%         \item Build block-diagonal $R_{ii}$ per atom.
+%         \item Transform: $D'_{ii} = R_{ii} \, D_{ii} \, R_{ii}^\top$.
+%       \end{itemize}
+%       \vspace{0.2cm}
+%       \textbf{Convention trap:}
+%       \begin{itemize}
+%         \scriptsize
+%         \item ASE: column-vector ($\mathbf{r}' = R\mathbf{r}$).
+%         \item GPAW: row-vector ($\mathbf{r}'^\top = \mathbf{r}^\top U$), so $U = R^\top$.
+%       \end{itemize}
+%     \end{column}
+%   \end{columns}
+% 
+%   \vspace{0.3cm}
+%   \centering
+%   \footnotesize
+%   \textbf{Result:} Full SCF on 90$^\circ$/180$^\circ$ yields $E$ identical to original ($\Delta E < 10^{-10}$~eV). GPAW itself is perfectly equivariant.
+% \end{frame}
+% 
+% % -----------------------------------------------------------------------------
+% % SLIDE 8b: THREE CRITICAL BUGS & FIXES
+% % -----------------------------------------------------------------------------
+% \begin{frame}{Lessons Learned: Three Critical Implementation Bugs}
+%   \begin{enumerate}
+%     \item \textbf{Padding Bug}
+%       \begin{itemize}
+%         \item \texttt{get\_pseudo\_density(pad=True)} adds a zero-layer at index~0.
+%         \item After \texttt{scipy.ndimage.rotate}, padding is no longer at the boundary.
+%         \item \textbf{Fix:} Extract unpadded density directly from \texttt{calc.density.nt\_sG[0]} (e/Bohr$^3$).
+%       \end{itemize}
+% 
+%     \vspace{0.2cm}
+%     \item \textbf{Handedness Bug}
+%       \begin{itemize}
+%         \item \texttt{scipy.ndimage.rotate($+90^\circ$, axes=(0,2))} rotates \textbf{opposite} to \texttt{ase.Atoms.rotate($+90^\circ$, 'y')}.
+%         \item Empirically: ASE $+90^\circ$~y = scipy $-90^\circ$~axes(0,2).
+%         \item \textbf{Fix:} Use $-90^\circ$ in scipy to match ASE geometry rotation.
+%       \end{itemize}
+% 
+%     \vspace{0.2cm}
+%     \item \textbf{$D_{asp}$ Rotation Bug}
+%       \begin{itemize}
+%         \item Without rotating $D_{asp}$, injection energy error = \textbf{$\sim$1000~eV} (not a typo).
+%         \item The PAW augmentation spheres contain the wrong angular character.
+%         \item \textbf{Fix:} Apply Wigner-D $R_{ii} D_{ii} R_{ii}^\top$ with row-vector convention $U = R^\top$.
+%       \end{itemize}
+%   \end{enumerate}
+% 
+%   \vspace{0.2cm}
+%   \centering
+%   \footnotesize
+%   All three bugs were discovered and fixed during a single session on gdb\_1006 (C$_6$H$_4$O).\\
+%   Script: \texttt{scripts/test\_gdb1006\_lda\_rotation\_injection.py}
+% \end{frame}
 
 % -----------------------------------------------------------------------------
 % SLIDE 9: THANK YOU
