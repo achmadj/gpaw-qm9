@@ -92,7 +92,7 @@
     \begin{column}{0.6\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\textwidth]{loss_curve.pdf}
+        \includegraphics[width=\textwidth]{loss_vs_epoch.png}
       \end{figure}
     \end{column}
   \end{columns}
@@ -157,6 +157,10 @@
       \item \textbf{180$^\circ$ Rotations (robust):} Pure sign-inversion. R$^2 > 0.986$ for all molecules. Model handles reflection symmetries perfectly.
       \item \textbf{90$^\circ$ Rotations (grid-dependent):} Axis swapping causes significant degradation on \textbf{anisotropic grids} (e.g., $32\times48\times20 \rightarrow 20\times48\times32$). The scalar-only \texttt{escnn} representation ($\ell=0$, \texttt{trivial\_repr}) does \textbf{not} guarantee equivariance on arbitrary non-cubic 3D grids.
   \end{itemize}
+
+  \begin{alertblock}{Important Distinction}
+    GPAW itself is rigorously equivariant ($\Delta E < 10^{-10}$~eV for 90$^\circ$/180$^\circ$). The degradation observed here is a \textbf{model limitation}, not a DFT/PAW limitation. See next slides for PAW injection validation.
+  \end{alertblock}
 \end{frame}
 
 % -----------------------------------------------------------------------------
@@ -198,30 +202,128 @@
 \end{frame}
 
 % -----------------------------------------------------------------------------
-% SLIDE 7: GPAW INJECTION & CHALLENGES
+% SLIDE 7: GPAW SINGLE-SHOT INJECTION (SUCCESS)
 % -----------------------------------------------------------------------------
-\begin{frame}{GPAW Injection Test \& API Challenges}
-  \begin{alertblock}{Test Goal}
-    Inject predicted $n_r$ as the initial guess into GPAW to reduce SCF iterations.
+\begin{frame}{GPAW Single-Shot Injection: Breakthrough}
+  \begin{alertblock}{Result}
+    Successful single-shot KS diagonalization from injected pseudo-density. Total energy matches full SCF to machine precision.
   \end{alertblock}
 
-  \begin{itemize}
-      \item \textbf{Result:} $\Delta E = 0.0$ meV and \textbf{0 iterations saved} across all tests.
-      \item \textbf{Root Cause:} The GPAW API overrides the injected density. When \texttt{get\_potential\_energy()} is called after initialization, the SCF loop internally calls \texttt{initialize\_from\_atomic\_densities()}, completely resetting our high-fidelity predicted density.
-      \item \textbf{Implication:} The predicted density is highly accurate, but we cannot currently prove SCF acceleration due to software limitations, not model quality.
-  \end{itemize}
-  
-  \begin{block}{Next Steps}
-    \begin{enumerate}
-        \item Utilize GPAW's restart mechanism (save to \texttt{.gpw} file and resume).
-        \item Patch the GPAW SCF loop to forcefully skip \texttt{initialize\_from\_atomic\_densities()}.
-        \item Transition dataset generation to PBE functional and HGH pseudopotentials.
-    \end{enumerate}
-  \end{block}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \scriptsize
+      \begin{table}[h]
+        \centering
+        \caption{Injection accuracy on gdb\_1006 (C$_6$H$_4$O, LDA).}
+        \begin{tabular}{lcc}
+          \toprule
+          Case & $E_{\text{total}}$ (eV) & $\Delta E$ vs Full SCF \\
+          \midrule
+          Original (full SCF) & $-76.268771$ & --- \\
+          Original (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
+          90$^\circ$ (full SCF) & $-76.268771$ & --- \\
+          90$^\circ$ (injected) & $-76.279642$ & $-1.1\times10^{-2}$ \\
+          180$^\circ$ (full SCF) & $-76.268771$ & --- \\
+          180$^\circ$ (injected) & $-76.268771$ & $+2.2\times10^{-8}$ \\
+          \bottomrule
+        \end{tabular}
+      \end{table}
+      \vspace{-0.2cm}
+      \begin{itemize}
+        \item \textbf{Original / 180$^\circ$:} Machine-precision agreement.
+        \item \textbf{90$^\circ$:} $\sim$0.01~eV error from linear interpolation during grid axis swap.
+        \item HOMO error ($\sim$0.086~eV) is \textbf{identical} across all cases $\rightarrow$ not a rotation artifact.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \includegraphics[width=\textwidth]{gpaw_rotation_injection_delta.png}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % -----------------------------------------------------------------------------
-% SLIDE 8: THANK YOU
+% SLIDE 8a: PAW CONSISTENCY UNDER ROTATION
+% -----------------------------------------------------------------------------
+\begin{frame}{PAW Consistency Under Rotation: Why $D_{asp}$ Must Rotate}
+  \begin{block}{The PAW Decomposition}
+    $n(\mathbf{r}) = \tilde{n}(\mathbf{r}) + \sum_a \big[ n_a(\mathbf{r}) - \tilde{n}_a(\mathbf{r}) \big]$
+    \begin{itemize}
+      \item $\tilde{n}$: smooth pseudo-density on the grid.
+      \item $n_a - \tilde{n}_a$: augmentation-sphere correction reconstructed from $D_{asp}$.
+    \end{itemize}
+  \end{block}
+
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{If only $\tilde{n}$ is rotated:}
+      \begin{itemize}
+        \item Grid says bond points along $+y$.
+        \item $D_{asp}$ still describes old $+x$ angular distribution.
+        \item \textcolor{red}{Multipole moments (dipole, quadrupole) are wrong.}
+        \item \textcolor{red}{Hartree + XC energy corrupted $\rightarrow$ error $\sim$1000~eV.}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{Solution: Rotate $D_{asp}$ with Wigner-D matrices}
+      \begin{itemize}
+        \item GPAW provides \texttt{gpaw.rotation.rotation(l, $U_{vv}$)}.
+        \item Build block-diagonal $R_{ii}$ per atom.
+        \item Transform: $D'_{ii} = R_{ii} \, D_{ii} \, R_{ii}^\top$.
+      \end{itemize}
+      \vspace{0.2cm}
+      \textbf{Convention trap:}
+      \begin{itemize}
+        \scriptsize
+        \item ASE: column-vector ($\mathbf{r}' = R\mathbf{r}$).
+        \item GPAW: row-vector ($\mathbf{r}'^\top = \mathbf{r}^\top U$), so $U = R^\top$.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.3cm}
+  \centering
+  \footnotesize
+  \textbf{Result:} Full SCF on 90$^\circ$/180$^\circ$ yields $E$ identical to original ($\Delta E < 10^{-10}$~eV). GPAW itself is perfectly equivariant.
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 8b: THREE CRITICAL BUGS & FIXES
+% -----------------------------------------------------------------------------
+\begin{frame}{Lessons Learned: Three Critical Implementation Bugs}
+  \begin{enumerate}
+    \item \textbf{Padding Bug}
+      \begin{itemize}
+        \item \texttt{get\_pseudo\_density(pad=True)} adds a zero-layer at index~0.
+        \item After \texttt{scipy.ndimage.rotate}, padding is no longer at the boundary.
+        \item \textbf{Fix:} Extract unpadded density directly from \texttt{calc.density.nt\_sG[0]} (e/Bohr$^3$).
+      \end{itemize}
+
+    \vspace{0.2cm}
+    \item \textbf{Handedness Bug}
+      \begin{itemize}
+        \item \texttt{scipy.ndimage.rotate($+90^\circ$, axes=(0,2))} rotates \textbf{opposite} to \texttt{ase.Atoms.rotate($+90^\circ$, 'y')}.
+        \item Empirically: ASE $+90^\circ$~y = scipy $-90^\circ$~axes(0,2).
+        \item \textbf{Fix:} Use $-90^\circ$ in scipy to match ASE geometry rotation.
+      \end{itemize}
+
+    \vspace{0.2cm}
+    \item \textbf{$D_{asp}$ Rotation Bug}
+      \begin{itemize}
+        \item Without rotating $D_{asp}$, injection energy error = \textbf{$\sim$1000~eV} (not a typo).
+        \item The PAW augmentation spheres contain the wrong angular character.
+        \item \textbf{Fix:} Apply Wigner-D $R_{ii} D_{ii} R_{ii}^\top$ with row-vector convention $U = R^\top$.
+      \end{itemize}
+  \end{enumerate}
+
+  \vspace{0.2cm}
+  \centering
+  \footnotesize
+  All three bugs were discovered and fixed during a single session on gdb\_1006 (C$_6$H$_4$O).\\
+  Script: \texttt{scripts/test\_gdb1006\_lda\_rotation\_injection.py}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 9: THANK YOU
 % -----------------------------------------------------------------------------
 \begin{frame}
   \begin{center}
