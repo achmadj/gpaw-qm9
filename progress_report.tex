@@ -1,0 +1,195 @@
+\documentclass[aspectratio=169]{beamer}
+
+% Theme and Color Scheme
+\usetheme{Madrid}
+\usecolortheme{beaver}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{siunitx}
+\usepackage{subcaption}
+
+% Meta-data
+\title[Progress Report: QM9 DFT Modeling]{Progress Report: Equivariant DFT Density Modeling}
+\subtitle{SO(3)-Equivariant 3D U-Net for GPAW QM9 Dataset}
+\author{Achmad Jaelani}
+\institute[BRIN \& UI]{
+  Research Center for Quantum Physics, BRIN, Indonesia \\
+  Department of Physics, Universitas Indonesia
+}
+\date{\today}
+
+\begin{document}
+
+% -----------------------------------------------------------------------------
+% SLIDE 1: JUDUL
+% -----------------------------------------------------------------------------
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 2: MOTIVASI & TUJUAN
+% -----------------------------------------------------------------------------
+\begin{frame}{Motivation \& Objective}
+  \begin{block}{Objective}
+    To optimize the Density Functional Theory (DFT) electron density prediction workflow by eliminating expensive Self-Consistent Field (SCF) calculations.
+  \end{block}
+  
+  \begin{itemize}
+      \item \textbf{Current Bottleneck:} SCF cycles in GPAW are computationally expensive.
+      \item \textbf{Proposed Solution:} Replace post-SCF input ($v_{ext}$) with a pre-SCF ionic potential ($v_{ion}$) obtained via \texttt{maxiter=0}.
+      \item \textbf{Model:} Train an SO(3)-Equivariant 3D U-Net to map $v_{ion} \rightarrow n_r$ (ground-state electron density).
+      \item \textbf{Why Equivariant?} Electron density must rotate identically with the input molecule geometry. E(3) / SO(3) architectures guarantee physical symmetry-awareness without massive data augmentation.
+  \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 3: DATASET & ARCHITECTURE
+% -----------------------------------------------------------------------------
+\begin{frame}{Dataset \& Model Architecture}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{QM9 Phase A Dataset}
+      \begin{itemize}
+          \item Smallest 1,000 molecules from QM9.
+          \item Input: $v_{ion}$ (effective potential at $n_0$, shape $X \times Y \times Z$).
+          \item Target: $n_r$ (full SCF pseudo-density).
+          \item DFT Settings: PAW setups, LDA functional (to be upgraded to PBE/HGH).
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{SO(3)-Equivariant 3D U-Net}
+      \begin{itemize}
+          \item Built with \texttt{escnn.nn.R3Conv}.
+          \item Parameters: $\sim$542,000.
+          \item \texttt{base\_channels} = 32.
+          \item \texttt{max\_freq} = 2 (SO(3) frequency).
+          \item \textbf{Crucial Fix:} Replaced \texttt{ReLU} with \texttt{Softplus} at the output and added \textit{per-sample input standardization} to prevent Dead Neurons (Dying ReLU problem) caused by the large scale of $v_{ion}$ (-127 eV to 0 eV).
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 4: TRAINING LOSS
+% -----------------------------------------------------------------------------
+\begin{frame}{Training Performance}
+  \begin{columns}
+    \begin{column}{0.4\textwidth}
+      \begin{itemize}
+          \item Trained for 100 epochs.
+          \item Batch size: 8.
+          \item Initial Learning Rate: $3\times 10^{-4}$ (Cosine Annealing).
+          \item Loss metric: Masked L1 Loss (MAE).
+          \item \textbf{Best Validation Loss:} 0.00579 at Epoch 92.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.6\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{loss_curve.pdf}
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 5: PREDICTION METRICS
+% -----------------------------------------------------------------------------
+\begin{frame}{Density Prediction Accuracy}
+  \begin{table}[h]
+    \centering
+    \tiny
+    \caption{Prediction metrics on 5 validation molecules (QM9).}
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc}
+    \toprule
+    Molecule & Atoms & Grid Shape & MAE & $R^2$ & $\int \text{ratio} (\text{pred}/\text{true})$ & Peak (pred / true) \\
+    \midrule
+    C$_3$H$_4$O$_2$ & 9  & $36\times40\times32$ & 0.00445 & 0.9944 & 1.015 & 4.99 / 5.38 \\
+    C$_5$HNO$_2$    & 9  & $56\times36\times20$ & 0.00708 & 0.9944 & 1.027 & 5.19 / 5.42 \\
+    C$_3$H$_4$N$_2$O & 10 & $32\times44\times28$ & 0.00579 & 0.9935 & 1.007 & 4.95 / 5.48 \\
+    CHN$_3$O$_2$    & 7  & $24\times40\times32$ & 0.00969 & 0.9921 & 0.963 & 5.19 / 5.60 \\
+    C$_3$HN$_3$O$_3$ & 10 & $36\times48\times20$ & 0.00885 & 0.9933 & 1.009 & 5.30 / 5.63 \\
+    \midrule
+    \textbf{Average} & & & \textbf{0.00717} & \textbf{0.9935} & \textbf{1.004} & \\
+    \bottomrule
+    \end{tabular*}
+  \end{table}
+  
+  \begin{itemize}
+      \item \textbf{Excellent $R^2$:} Model captures $>99.3\%$ of electron density variance.
+      \item \textbf{Conservation of Charge:} Integral ratio is close to 1.0 (approx. $\pm3\%$ error).
+      \item \textbf{Peak Underprediction:} Model slightly smooths out nuclear cusps ($\sim$7-9\% error), which is expected for grid-based L1-loss minimization.
+  \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 6: EQUIVARIANCE TEST
+% -----------------------------------------------------------------------------
+\begin{frame}{Equivariance Validation}
+  \begin{block}{Methodology}
+    We verified model equivariance by comparing $f(R\cdot x)$ vs $R \cdot f(x)$, where $R$ is a rotation operator, $x$ is input ($v_{ion}$), and $f$ is the network.
+  \end{block}
+
+  \begin{table}[h]
+    \centering
+    \scriptsize
+    \caption{Equivariance and accuracy metrics averaged over 10 validation molecules.}
+    \begin{tabular}{llccc}
+    \toprule
+    Rotation Type & Metric & MAE & $R^2$ \\
+    \midrule
+    \multirow{3}{*}{\textbf{90$^\circ$ (Exact)}} & \textbf{Equivariance Error} ($f(R x)$ vs $R f(x)$) & \textbf{0.0013} & \textbf{0.9996} \\
+                                              & Rotated Accuracy ($f(R x)$ vs $R y$) & 0.0067 & 0.9931 \\
+                                              & Original Accuracy ($f(x)$ vs $y$) & 0.0065 & 0.9932 \\
+    \midrule
+    \multirow{3}{*}{\textbf{Arbitrary (Interpolated)}} & \textbf{Equivariance Error} & \textbf{0.0115} & \textbf{0.9784} \\
+                                                    & Rotated Accuracy & 0.0139 & 0.9694 \\
+                                                    & Original Accuracy & 0.0065 & 0.9932 \\
+    \bottomrule
+    \end{tabular}
+  \end{table}
+
+  \begin{itemize}
+      \item \textbf{Exact 90$^\circ$ Rotations:} The model exhibits near-perfect equivariance ($R^2 \approx 1.000$).
+      \item \textbf{Arbitrary Rotations:} Slight performance degradation is primarily due to \texttt{scipy.ndimage} trilinear grid interpolation artifacts, \textbf{not} a failure of the model's geometric awareness.
+  \end{itemize}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 7: GPAW INJECTION & CHALLENGES
+% -----------------------------------------------------------------------------
+\begin{frame}{GPAW Injection Test \& API Challenges}
+  \begin{alertblock}{Test Goal}
+    Inject predicted $n_r$ as the initial guess into GPAW to reduce SCF iterations.
+  \end{alertblock}
+
+  \begin{itemize}
+      \item \textbf{Result:} $\Delta E = 0.0$ meV and \textbf{0 iterations saved} across all tests.
+      \item \textbf{Root Cause:} The GPAW API overrides the injected density. When \texttt{get\_potential\_energy()} is called after initialization, the SCF loop internally calls \texttt{initialize\_from\_atomic\_densities()}, completely resetting our high-fidelity predicted density.
+      \item \textbf{Implication:} The predicted density is highly accurate, but we cannot currently prove SCF acceleration due to software limitations, not model quality.
+  \end{itemize}
+  
+  \begin{block}{Next Steps}
+    \begin{enumerate}
+        \item Utilize GPAW's restart mechanism (save to \texttt{.gpw} file and resume).
+        \item Patch the GPAW SCF loop to forcefully skip \texttt{initialize\_from\_atomic\_densities()}.
+        \item Transition dataset generation to PBE functional and HGH pseudopotentials.
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% SLIDE 8: THANK YOU
+% -----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \Huge{Thank You!}
+  \end{center}
+\end{frame}
+
+\end{document}

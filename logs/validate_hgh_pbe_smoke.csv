@@ -1,0 +1,2 @@
+shard_index,shard_file,key,formula,status,delta_homo_eV,delta_lumo_eV,delta_gap_eV,max_abs_eig_delta_eV,pass_frontier_tol,elapsed_s,error
+1,gpaw_pseudo_hgh_pbe_shard_1.h5,dsgdb9nsd_021981,C2HN3O3,ok,0.0014798169299137243,0.00042416425478242203,0.0010556526751308581,0.2706602035618606,True,15.036027193069458,

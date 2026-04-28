@@ -18,6 +18,15 @@ MINKOWSKI_BUILD_LIB = MINKOWSKI_REPO / "build" / "lib.linux-x86_64-cpython-311"
 # ── Data ─────────────────────────────────────────────────────────────
 INPUT_DATASET = "v_ext"
 TARGET_DATASET = "n_r"
+
+# Feature merged from gpaw-qm9.tgz (equivariant update):
+# Alternate input datasets for different experiment backends.
+INPUT_DATASET_MAP = {
+    "default": "v_ext",
+    "dense": "v_ext",
+    "vion": "v_ion",
+    "equivariant": "v_ion",
+}
 IN_CHANNELS = 1
 OUT_CHANNELS = 1
 VAL_SPLIT = 0.10

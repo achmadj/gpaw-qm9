@@ -1,0 +1,46 @@
+{
+  "config": {
+    "raw_db": "/home/achmadjae/gpaw-qm9/dataset/raw/qm9_smallest_20k.h5",
+    "shard_glob": "dataset/shards/gpaw_pseudo_hgh_pbe_shard_1.h5",
+    "samples_per_shard": 1,
+    "seed": 7,
+    "h": 0.2,
+    "xc": "PBE",
+    "mode": "fd",
+    "setups": "hgh",
+    "padding_bohr": 4.0,
+    "max_diag_iters": 12,
+    "eig_stability_tol": 1e-06,
+    "frontier_tol_eV": 0.05
+  },
+  "timing_s": 15.037577152252197,
+  "counts": {
+    "shards": 1,
+    "rows_total": 1,
+    "rows_ok": 1,
+    "rows_failed": 0,
+    "rows_pass_frontier_tol": 1
+  },
+  "metrics_eV": {
+    "delta_homo_mean": 0.0014798169299137243,
+    "delta_homo_median": 0.0014798169299137243,
+    "delta_homo_max": 0.0014798169299137243,
+    "delta_lumo_mean": 0.00042416425478242203,
+    "delta_lumo_median": 0.00042416425478242203,
+    "delta_lumo_max": 0.00042416425478242203,
+    "delta_gap_mean": 0.0010556526751308581,
+    "delta_gap_median": 0.0010556526751308581,
+    "delta_gap_max": 0.0010556526751308581
+  },
+  "per_shard": [
+    {
+      "shard_index": 1,
+      "shard_path": "dataset/shards/gpaw_pseudo_hgh_pbe_shard_1.h5",
+      "available_keys": 623,
+      "sampled": 1,
+      "success": 1,
+      "failed": 0,
+      "pass_count": 1
+    }
+  ]
+}

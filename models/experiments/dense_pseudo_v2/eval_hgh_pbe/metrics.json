@@ -1,0 +1,39 @@
+{
+  "checkpoint": "/home/achmadjae/gpaw-qm9/models/experiments/dense_pseudo_v2/checkpoints/best.pt",
+  "best_val": 0.0006363979773595929,
+  "data": "/home/achmadjae/gpaw-qm9/dataset/gpaw_qm9_pseudo_hgh_pbe_merged.h5",
+  "max_samples": null,
+  "val_split": 0.1,
+  "split_seed": 42,
+  "sample_seed": 42,
+  "selected_validation_position": 184,
+  "selected_dataset_index": 1546,
+  "key": "dsgdb9nsd_002596",
+  "formula": "C5H7NO",
+  "shape": [
+    44,
+    44,
+    40
+  ],
+  "plot_info": {
+    "density_threshold": 0.05,
+    "delta_threshold": 0.009130611084401608,
+    "true_selected_points": 8632,
+    "pred_selected_points": 8627,
+    "delta_selected_points": 701
+  },
+  "mae": 0.0004165117279626429,
+  "rmse": 0.003584733698517084,
+  "r2": 0.9998502208157067,
+  "pred_sum_raw": 4667.9052734375,
+  "true_sum_raw": 4667.81005859375,
+  "delta_sum_raw": 0.09521484375,
+  "max_abs_error": 0.4120302200317383,
+  "dv_angstrom3": 0.008140879933413179,
+  "pred_integrated_electrons": 38.0008544921875,
+  "true_integrated_electrons": 38.00008010864258,
+  "delta_integrated_electrons": 0.000774383544921875,
+  "expected_neutral_electrons": 52,
+  "delta_pred_vs_expected_electrons": -13.9991455078125,
+  "delta_true_vs_expected_electrons": -13.999919891357422
+}

@@ -1,0 +1,20 @@
+{
+  "data": "dataset/qm9_1000_phase_a.h5",
+  "experiment_name": "equivariant_v1",
+  "epochs": 100,
+  "batch_size": 8,
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "base_channels": 32,
+  "max_freq": 2,
+  "val_split": 0.1,
+  "seed": 42,
+  "amp": true,
+  "gpu": 0,
+  "last_activation": "softplus",
+  "num_workers": 2,
+  "resume": null,
+  "n_params": 542593,
+  "train_samples": 900,
+  "val_samples": 100
+}

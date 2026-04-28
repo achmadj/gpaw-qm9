@@ -1,0 +1,122 @@
+[
+  {
+    "key": "gdb_130830",
+    "formula": "C3HN3O3",
+    "n_atoms": 10,
+    "E_ref_eV": -77.46201135933855,
+    "n_iter_ref": 22,
+    "grid_shape_full": [
+      36,
+      48,
+      20
+    ],
+    "grid_shape_internal": [
+      35,
+      47,
+      19
+    ],
+    "E_inject_eV": -77.46201135933855,
+    "n_iter_inject": 22,
+    "dE_inject_meV": 0.0,
+    "iter_saved": 0,
+    "mae_pred_vs_freshSCF": 0.008849716013964051,
+    "r2_pred_vs_freshSCF": 0.9932960744010131,
+    "integral_ratio": 1.00890493921041
+  },
+  {
+    "key": "gdb_735",
+    "formula": "C3H4N2O",
+    "n_atoms": 10,
+    "E_ref_eV": -68.45169245866889,
+    "n_iter_ref": 22,
+    "grid_shape_full": [
+      32,
+      44,
+      28
+    ],
+    "grid_shape_internal": [
+      31,
+      43,
+      27
+    ],
+    "E_inject_eV": -68.45169245866889,
+    "n_iter_inject": 22,
+    "dE_inject_meV": 0.0,
+    "iter_saved": 0,
+    "mae_pred_vs_freshSCF": 0.005789134833109018,
+    "r2_pred_vs_freshSCF": 0.9934585949673365,
+    "integral_ratio": 1.00727395180021
+  },
+  {
+    "key": "gdb_790",
+    "formula": "CHN3O2",
+    "n_atoms": 7,
+    "E_ref_eV": -52.19380061885383,
+    "n_iter_ref": 20,
+    "grid_shape_full": [
+      24,
+      40,
+      32
+    ],
+    "grid_shape_internal": [
+      23,
+      39,
+      31
+    ],
+    "E_inject_eV": -52.19380061885383,
+    "n_iter_inject": 20,
+    "dE_inject_meV": 0.0,
+    "iter_saved": 0,
+    "mae_pred_vs_freshSCF": 0.009691983403473272,
+    "r2_pred_vs_freshSCF": 0.9920710934171362,
+    "integral_ratio": 0.962553881961751
+  },
+  {
+    "key": "gdb_8719",
+    "formula": "C5HNO2",
+    "n_atoms": 9,
+    "E_ref_eV": -70.18998012946699,
+    "n_iter_ref": 22,
+    "grid_shape_full": [
+      56,
+      36,
+      20
+    ],
+    "grid_shape_internal": [
+      55,
+      35,
+      19
+    ],
+    "E_inject_eV": -70.18998012946699,
+    "n_iter_inject": 22,
+    "dE_inject_meV": 0.0,
+    "iter_saved": 0,
+    "mae_pred_vs_freshSCF": 0.007076988310837333,
+    "r2_pred_vs_freshSCF": 0.9944339297916848,
+    "integral_ratio": 1.026756359424828
+  },
+  {
+    "key": "gdb_92",
+    "formula": "C3H4O2",
+    "n_atoms": 9,
+    "E_ref_eV": -58.999888059817295,
+    "n_iter_ref": 21,
+    "grid_shape_full": [
+      36,
+      40,
+      32
+    ],
+    "grid_shape_internal": [
+      35,
+      39,
+      31
+    ],
+    "E_inject_eV": -58.999888059817295,
+    "n_iter_inject": 21,
+    "dE_inject_meV": 0.0,
+    "iter_saved": 0,
+    "mae_pred_vs_freshSCF": 0.004452377817320253,
+    "r2_pred_vs_freshSCF": 0.9944313751443206,
+    "integral_ratio": 1.0151770225277723
+  }
+]

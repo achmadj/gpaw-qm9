@@ -1,0 +1,325 @@
+{
+  "config": {
+    "raw_db": "/home/achmadjae/gpaw-qm9/dataset/raw/qm9_smallest_20k.h5",
+    "shard_glob": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_*.h5",
+    "samples_per_shard": 2,
+    "seed": 42,
+    "h": 0.2,
+    "xc": "PBE",
+    "mode": "fd",
+    "setups": "hgh",
+    "padding_bohr": 4.0,
+    "max_diag_iters": 12,
+    "eig_stability_tol": 1e-06,
+    "frontier_tol_eV": 0.05
+  },
+  "timing_s": 728.3430414199829,
+  "counts": {
+    "shards": 32,
+    "rows_total": 64,
+    "rows_ok": 64,
+    "rows_failed": 0,
+    "rows_pass_frontier_tol": 64
+  },
+  "metrics_eV": {
+    "delta_homo_mean": 0.00045311455332588957,
+    "delta_homo_median": 0.0002682377419835902,
+    "delta_homo_max": 0.0029481466662311107,
+    "delta_lumo_mean": 0.0005110489998604956,
+    "delta_lumo_median": 0.0002462652535126786,
+    "delta_lumo_max": 0.004153640093076859,
+    "delta_gap_mean": 0.0007388667856616377,
+    "delta_gap_median": 0.00044102796642420117,
+    "delta_gap_max": 0.004623901437135203
+  },
+  "per_shard": [
+    {
+      "shard_index": 0,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_0.h5",
+      "available_keys": 624,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 1,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_1.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 10,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_10.h5",
+      "available_keys": 624,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 11,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_11.h5",
+      "available_keys": 624,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 12,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_12.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 13,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_13.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 14,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_14.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 15,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_15.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 16,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_16.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 17,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_17.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 18,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_18.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 19,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_19.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 2,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_2.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 20,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_20.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 21,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_21.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 22,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_22.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 23,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_23.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 24,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_24.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 25,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_25.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 26,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_26.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 27,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_27.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 28,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_28.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 29,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_29.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 3,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_3.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 30,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_30.h5",
+      "available_keys": 621,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 31,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_31.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 4,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_4.h5",
+      "available_keys": 622,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 5,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_5.h5",
+      "available_keys": 620,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 6,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_6.h5",
+      "available_keys": 624,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 7,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_7.h5",
+      "available_keys": 624,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 8,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_8.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    },
+    {
+      "shard_index": 9,
+      "shard_path": "/home/achmadjae/gpaw-qm9/dataset/shards/gpaw_pseudo_hgh_pbe_shard_9.h5",
+      "available_keys": 623,
+      "sampled": 2,
+      "success": 2,
+      "failed": 0,
+      "pass_count": 2
+    }
+  ]
+}

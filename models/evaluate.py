@@ -41,6 +41,7 @@ from models.config import (
     DROPOUT,
     EXPERIMENTS_ROOT,
     INPUT_DATASET,
+    INPUT_DATASET_MAP,
     NORM_GROUPS,
     RANDOM_SEED,
     TARGET_DATASET,
@@ -48,6 +49,7 @@ from models.config import (
 )
 from models.dense.dataset import QM9DensityDataset, symlog_inv
 from models.dense.model import SmallUNet3D
+from models.equivariant.model import EquivariantUNet3D
 from models.utils import ensure_dir, load_checkpoint, formula_to_electron_count, compute_voxel_volume
 
 def parse_args() -> argparse.Namespace:
@@ -61,6 +63,14 @@ def parse_args() -> argparse.Namespace:
         help="Nama experiment di bawah EXPERIMENTS_ROOT. "
              "Otomatis set --checkpoint, --output-dir, dan --train-loss-path "
              "jika tidak dispesifikasikan secara eksplisit.",
+    )
+    parser.add_argument(
+        "--backend", choices=["dense", "equivariant"], default="dense",
+        help="Model backend: dense (SmallUNet3D) or equivariant (EquivariantUNet3D).",
+    )
+    parser.add_argument(
+        "--max-freq", type=int, default=2,
+        help="Maximum SO(3) frequency for equivariant backend (escnn L).",
     )
 
     # ── Path (semua pakai absolute default dari config) ───────────
@@ -77,11 +87,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sample-seed", type=int, default=42)
     parser.add_argument("--sample-index", type=int, default=None)
     parser.add_argument("--base-channels", type=int, default=BASE_CHANNELS)
+    parser.add_argument(
+        "--auto-base-channels",
+        action="store_true",
+        default=False,
+        help=(
+            "Infer base_channels from checkpoint weights "
+            "(useful when config default differs from experiment architecture)."
+        ),
+    )
     parser.add_argument("--dropout", type=float, default=DROPOUT)
     parser.add_argument("--norm-groups", type=int, default=NORM_GROUPS)
     parser.add_argument("--final-activation", choices=["softplus", "relu"], default="relu")
     parser.add_argument("--input-dataset", default=INPUT_DATASET)
     parser.add_argument("--target-dataset", default=TARGET_DATASET)
+    parser.add_argument(
+        "--auto-target-dataset",
+        action="store_true",
+        default=False,
+        help=(
+            "If --target-dataset is missing in the HDF5 group, auto-pick a compatible "
+            "target dataset (prefers n_pseudo, then n_r, then first non-input dataset)."
+        ),
+    )
     parser.add_argument("--density-threshold", type=float, default=0.05)
     parser.add_argument("--delta-threshold", type=float, default=None)
     parser.add_argument("--delta-quantile", type=float, default=0.99)
@@ -148,6 +176,60 @@ def collect_keys_and_formulas(h5_path: str, max_samples: int | None = None):
                 formula = formula.decode("utf-8")
             formulas.append(str(formula))
     return keys, formulas
+
+
+def resolve_target_dataset(
+    h5_path: str, requested_target: str, input_dataset: str, auto_pick: bool = False
+) -> str:
+    with h5py.File(h5_path, "r") as handle:
+        keys = sorted(handle.keys())
+        if not keys:
+            raise ValueError(f"No groups found in dataset: {h5_path}")
+        available = set(handle[keys[0]].keys())
+
+    if requested_target in available:
+        return requested_target
+
+    if not auto_pick:
+        raise KeyError(
+            f"Target dataset '{requested_target}' not found in H5 groups. "
+            f"Available datasets: {sorted(available)}. "
+            "Pass --target-dataset with a valid name (e.g. n_pseudo) "
+            "or use --auto-target-dataset."
+        )
+
+    preferred = ("n_pseudo", "n_r")
+    for name in preferred:
+        if name in available and name != input_dataset:
+            print(
+                f"[evaluate] target '{requested_target}' not found; "
+                f"auto-selecting '{name}'."
+            )
+            return name
+
+    fallback = next((name for name in sorted(available) if name != input_dataset), None)
+    if fallback is None:
+        raise KeyError(
+            f"No suitable target dataset found in group datasets: {sorted(available)} "
+            f"(input dataset is '{input_dataset}')."
+        )
+
+    print(
+        f"[evaluate] target '{requested_target}' not found; "
+        f"auto-selecting fallback dataset '{fallback}'."
+    )
+    return fallback
+
+
+def infer_base_channels_from_checkpoint(checkpoint_path: str) -> int:
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    state_dict = checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint
+    weight = state_dict.get("enc1.block.0.weight")
+    if weight is None:
+        raise KeyError(
+            "Cannot infer base_channels: key 'enc1.block.0.weight' not found in checkpoint."
+        )
+    return int(weight.shape[0])
 
 
 def stratified_split(formulas, val_split: float, seed: int):
@@ -429,6 +511,20 @@ def plot_loss_history(history_path: Path, output_dir: Path) -> None:
 def main() -> None:
     args = parse_args()
     set_seed(args.seed)
+    args.target_dataset = resolve_target_dataset(
+        args.data,
+        requested_target=args.target_dataset,
+        input_dataset=args.input_dataset,
+        auto_pick=args.auto_target_dataset,
+    )
+    if args.auto_base_channels:
+        inferred = infer_base_channels_from_checkpoint(args.checkpoint)
+        if inferred != args.base_channels:
+            print(
+                f"[evaluate] base_channels={args.base_channels} overridden by checkpoint-inferred "
+                f"value {inferred}."
+            )
+            args.base_channels = inferred
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_dir = ensure_dir(args.output_dir)
@@ -462,14 +558,32 @@ def main() -> None:
     dv = compute_voxel_volume(cell_angstrom, meta.original_shape)
     expected_electrons = formula_to_electron_count(meta.formula)
 
-    model = SmallUNet3D(
-        in_channels=1,
-        out_channels=1,
-        base_channels=args.base_channels,
-        dropout=args.dropout,
-        norm_groups=args.norm_groups,
-        final_activation=args.final_activation,
-    ).to(device)
+    # Auto-switch input dataset for equivariant backend
+    if args.backend == "equivariant" and args.input_dataset == "v_ext":
+        print(
+            "[evaluate] Info: equivariant backend detected; switching input-dataset "
+            "from v_ext to v_ion for compatibility."
+        )
+        args.input_dataset = "v_ion"
+
+    # Model instantiation based on backend
+    if args.backend == "equivariant":
+        model = EquivariantUNet3D(
+            in_channels=1,
+            out_channels=1,
+            base_channels=args.base_channels,
+            max_freq=args.max_freq,
+            last_activation=args.final_activation,
+        ).to(device)
+    else:
+        model = SmallUNet3D(
+            in_channels=1,
+            out_channels=1,
+            base_channels=args.base_channels,
+            dropout=args.dropout,
+            norm_groups=args.norm_groups,
+            final_activation=args.final_activation,
+        ).to(device)
     _, best_val = load_checkpoint(args.checkpoint, model, optimizer=None, device=device)
     model.eval()
 
@@ -550,6 +664,7 @@ def main() -> None:
 
     payload = {
         "checkpoint": str(Path(args.checkpoint).resolve()),
+        "backend": args.backend,
         "best_val": best_val,
         "data": args.data,
         "max_samples": args.max_samples,
